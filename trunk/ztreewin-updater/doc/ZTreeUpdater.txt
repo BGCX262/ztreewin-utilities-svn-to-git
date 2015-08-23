@@ -1,0 +1,53 @@
+[User-requested actions]
+
+* Check latest version (full, beta, or zeta)
+	=> get latest package (full, beta, or zeta)
+	- if package is NOT present, then:
+		- indicate to user that there is a more recent version. Install it? Just download it? Do nothing?
+		* Do nothing => exit;
+		=> Download latest version
+		* Just download it => exit;
+		=> Install given version (downloaded package);
+
+* Download latest version (full, beta, or zeta)
+	=> get latest package (full, beta, or zeta)
+	- if package is present, then:
+		- exit, returning the existing package;
+	- else:
+		- download the package;
+		- exit, returning the downloaded package.
+
+* Install latest version (full, beta, or zeta)
+	=> Download latest version (full, beta, or zeta)
+	=> install given version (downloaded package)
+
+* Install given version (downloaded package)
+	=> backup the current version;
+	- extract the files from the given package:
+		* rename any non-overwritable files, and add them to the list of files to be moved later;
+		  (put them in HKLM\System\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations)
+	- figure out the new version number;
+	- log the name of the installed package and the corresponding version number;
+
+* Rollback to previous version
+	- delete all the current files?
+	- get latest backup from log file;
+	- copy the files from the given backup (and rename any non-overwritable files).
+
+[Private functions]
+
+* get latest package (full, beta, or zeta)
+	- download update.ini
+	- return the latest package for the given level (zeta ? coalesce(ZetaZipN, ZetaZip, BetaZip, BetaExe, FullVersion) : beta ? coalesce(BetaZip, BetaExe, FullVersion))
+
+* package is present (latest package)
+	- it's present if the file exists in %backupRoot%\Updates
+
+* backup the current version
+	- copy all files to a version-specific directory (%backupRoot%\Updates\vN.NN), overwriting all 
+		existing files there.
+
+- On startup:
+	- check for files that couldn't be moved earlier, try moving them now.  If successful, remove them from the list.
+	- check if we need to remove downloaded packages and/or backups (specified in settings.ini or on the command line);
+		if so, remove them -- including files on the list of files to be moved.
